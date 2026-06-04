@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S7N — Booking CRM Dashboard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg: #09090d;
+  --surface: #111118;
+  --surface2: #18181f;
+  --border: #1e1e2a;
+  --red: #c0392b;
+  --red-dim: rgba(192,57,43,0.15);
+  --gold: #8B7536;
+  --green: #2e7d52;
+  --blue: #1a6fa8;
+  --purple: #6b3fa0;
+  --text: #e4e2ee;
+  --text-dim: #7a7890;
+  --text-muted: #3d3b55;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); font-family:'Barlow',sans-serif; color:var(--text); min-height:100vh; }
+
+/* HEADER */
+.header {
+  background: linear-gradient(135deg, #0c0c14 0%, #12121c 100%);
+  border-bottom: 2px solid var(--red);
+  padding: 20px 32px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  position: sticky; top: 0; z-index: 100;
+}
+.logo { font-family:'Bebas Neue',sans-serif; font-size:42px; letter-spacing:4px; color:var(--text); line-height:1; }
+.logo span { color:var(--red); }
+.header-subtitle { font-size:11px; color:var(--text-dim); letter-spacing:3px; text-transform:uppercase; }
+.header-stats { margin-left:auto; display:flex; gap:24px; }
+.stat { text-align:center; }
+.stat-num { font-family:'Bebas Neue',sans-serif; font-size:28px; color:var(--red); line-height:1; }
+.stat-label { font-size:10px; color:var(--text-muted); letter-spacing:2px; text-transform:uppercase; }
+
+/* TOOLBAR */
+.toolbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 32px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  position: sticky; top: 82px; z-index: 99;
+}
+.search-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 14px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  width: 240px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-box:focus { border-color: var(--red); }
+.search-box::placeholder { color: var(--text-muted); }
+
+.filter-group { display:flex; gap:6px; align-items:center; }
+.filter-label { font-size:10px; color:var(--text-muted); letter-spacing:2px; text-transform:uppercase; margin-right:4px; }
+.filter-btn {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 6px 12px;
+  font-family: 'Barlow', sans-serif;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:1px;
+  cursor:pointer;
+  text-transform:uppercase;
+  transition: all 0.15s;
+}
+.filter-btn:hover { border-color: var(--red); color: var(--text); }
+.filter-btn.active { background: var(--red); border-color: var(--red); color: #fff; }
+.filter-btn.active-green { background: var(--green); border-color: var(--green); color: #fff; }
+.filter-btn.active-blue { background: var(--blue); border-color: var(--blue); color: #fff; }
+.filter-btn.active-purple { background: var(--purple); border-color: var(--purple); color: #fff; }
+
+.results-count { margin-left:auto; font-size:12px; color:var(--text-muted); letter-spacing:1px; }
+
+/* MAIN LAYOUT */
+.main { display:flex; height:calc(100vh - 138px); }
+
+/* CONTACT LIST */
+.contact-list {
+  width: 380px;
+  min-width: 380px;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+}
+.contact-list::-webkit-scrollbar { width:4px; }
+.contact-list::-webkit-scrollbar-track { background:var(--bg); }
+.contact-list::-webkit-scrollbar-thumb { background:var(--border); }
+
+.contact-item {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+}
+.contact-item:hover { background: var(--surface2); }
+.contact-item.selected { background: var(--red-dim); border-left: 3px solid var(--red); padding-left:15px; }
+.contact-item.done { opacity: 0.45; }
+.contact-item.done .contact-name { text-decoration: line-through; }
+
+.contact-name { font-family:'Bebas Neue',sans-serif; font-size:15px; letter-spacing:1px; margin-bottom:3px; }
+.contact-meta { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.contact-type { font-size:10px; color:var(--text-muted); letter-spacing:1px; text-transform:uppercase; }
+.contact-city { font-size:11px; color:var(--text-dim); }
+.priority-pill {
+  font-size:9px; font-weight:700; letter-spacing:1px;
+  padding:2px 6px; text-transform:uppercase;
+  flex-shrink:0;
+}
+.p-urgent { background:var(--red); color:#fff; }
+.p-high { background:rgba(139,117,54,0.3); color:#c9a84c; border:1px solid var(--gold); }
+.p-mid { background:rgba(26,111,168,0.2); color:#5aa4d4; border:1px solid var(--blue); }
+.p-low { background:rgba(40,40,60,0.5); color:var(--text-muted); border:1px solid var(--border); }
+
+.market-dot {
+  width:8px; height:8px; border-radius:50%; flex-shrink:0;
+}
+.dot-usa { background:#c0392b; }
+.dot-eu { background:#2e7d52; }
+.dot-asia { background:#1a6fa8; }
+
+/* DETAIL PANEL */
+.detail-panel {
+  flex:1;
+  overflow-y:auto;
+  padding:32px;
+  background: var(--bg);
+}
+.detail-panel::-webkit-scrollbar { width:4px; }
+.detail-panel::-webkit-scrollbar-track { background:var(--bg); }
+.detail-panel::-webkit-scrollbar-thumb { background:var(--border); }
+
+.empty-state {
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  color:var(--text-muted);
+  gap:12px;
+}
+.empty-icon { font-family:'Bebas Neue',sans-serif; font-size:80px; color:var(--border); letter-spacing:4px; }
+.empty-text { font-size:13px; letter-spacing:2px; text-transform:uppercase; }
+
+.detail-header { margin-bottom:24px; }
+.detail-type-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+.detail-type-badge { font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--red); font-weight:700; }
+.detail-name { font-family:'Bebas Neue',sans-serif; font-size:36px; letter-spacing:2px; color:var(--text); line-height:1.1; margin-bottom:6px; }
+.detail-city { font-size:14px; color:var(--text-dim); }
+
+.detail-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-bottom:20px;
+}
+.detail-card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  padding:16px 18px;
+}
+.detail-card-label {
+  font-size:10px; letter-spacing:3px; text-transform:uppercase;
+  color:var(--text-muted); margin-bottom:6px;
+}
+.detail-card-value { font-size:14px; color:var(--text); line-height:1.5; }
+.detail-card-value a { color:var(--red); text-decoration:none; }
+.detail-card-value a:hover { text-decoration:underline; }
+
+.priority-block {
+  background:var(--red-dim);
+  border-left:3px solid var(--red);
+  padding:14px 18px;
+  margin-bottom:16px;
+}
+.priority-label { font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--red); margin-bottom:4px; }
+.priority-value { font-size:14px; color:var(--text); font-weight:600; }
+
+.strategy-block {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-top:2px solid var(--gold);
+  padding:16px 18px;
+  margin-bottom:16px;
+}
+.strategy-label { font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--gold); margin-bottom:8px; }
+.strategy-text { font-size:14px; color:var(--text-dim); line-height:1.7; }
+
+.notes-block {
+  background:var(--surface2);
+  border:1px solid var(--border);
+  padding:16px 18px;
+  margin-bottom:16px;
+}
+.notes-label { font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px; }
+.notes-text { font-size:13px; color:var(--text-dim); line-height:1.7; }
+
+.tags-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:20px; }
+.tag {
+  font-size:10px; font-weight:600; letter-spacing:1px;
+  padding:3px 8px; text-transform:uppercase;
+  background:var(--surface2); border:1px solid var(--border);
+  color:var(--text-muted);
+}
+
+/* ACTION BUTTONS */
+.actions { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:24px; }
+.btn {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:14px; letter-spacing:2px;
+  padding:10px 20px;
+  cursor:pointer;
+  border:none;
+  text-decoration:none;
+  display:inline-block;
+  transition:opacity 0.15s;
+}
+.btn:hover { opacity:0.85; }
+.btn-email { background:var(--red); color:#fff; }
+.btn-web { background:var(--surface); border:1px solid var(--border); color:var(--text); }
+.btn-done { background:var(--surface); border:1px solid var(--green); color:#4daa7a; }
+.btn-done.is-done { background:var(--green); color:#fff; }
+
+/* STATUS TRACKER */
+.status-section { margin-top:16px; }
+.status-label { font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--text-muted); margin-bottom:10px; }
+.status-options { display:flex; gap:8px; flex-wrap:wrap; }
+.status-opt {
+  font-size:11px; font-weight:600; letter-spacing:1px;
+  padding:6px 12px; text-transform:uppercase;
+  cursor:pointer;
+  background:var(--surface); border:1px solid var(--border);
+  color:var(--text-muted);
+  transition:all 0.15s;
+}
+.status-opt:hover { border-color:var(--red); color:var(--text); }
+.status-opt.active { background:var(--red); border-color:var(--red); color:#fff; }
+.status-opt.s-contacted { }
+.status-opt.s-replied { background:rgba(139,117,54,0.2); border-color:var(--gold); color:#c9a84c; }
+.status-opt.s-meeting { background:rgba(26,111,168,0.2); border-color:var(--blue); color:#5aa4d4; }
+.status-opt.s-booked { background:rgba(46,125,82,0.2); border-color:var(--green); color:#4daa7a; }
+.status-opt.s-pass { background:rgba(60,30,30,0.3); border-color:#5a2020; color:#884444; }
+
+.notes-textarea {
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:12px;
+  font-family:'Barlow',sans-serif;
+  font-size:13px;
+  min-height:80px;
+  resize:vertical;
+  outline:none;
+  margin-top:8px;
+  transition:border-color 0.2s;
+  line-height:1.6;
+}
+.notes-textarea:focus { border-color:var(--red); }
+.notes-textarea::placeholder { color:var(--text-muted); }
+
+.save-note-btn {
+  margin-top:8px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  color:var(--text-dim);
+  padding:6px 14px;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:13px;
+  letter-spacing:2px;
+  cursor:pointer;
+  transition:all 0.15s;
+}
+.save-note-btn:hover { border-color:var(--red); color:var(--text); }
+
+/* MARKET SECTION HEADERS */
+.list-section-header {
+  padding:10px 18px;
+  background:var(--bg);
+  font-family:'Bebas Neue',sans-serif;
+  font-size:12px;
+  letter-spacing:4px;
+  text-transform:uppercase;
+  color:var(--text-muted);
+  border-bottom:1px solid var(--border);
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+.list-section-header.usa { color:#c0392b; background:rgba(192,57,43,0.05); }
+.list-section-header.eu { color:#2e7d52; background:rgba(46,125,82,0.05); }
+.list-section-header.asia { color:#1a6fa8; background:rgba(26,111,168,0.05); }
+
+/* RESPONSIVE */
+@media (max-width:900px) {
+  .contact-list { width:100%; min-width:unset; }
+  .main { flex-direction:column; height:auto; }
+  .detail-panel { padding:20px; }
+  .detail-grid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="logo">S<span>7</span>N</div>
+    <div class="header-subtitle">Booking CRM · International Markets</div>
+  </div>
+  <div class="header-stats">
+    <div class="stat"><div class="stat-num" id="total-count">64</div><div class="stat-label">Contacts</div></div>
+    <div class="stat"><div class="stat-num" id="urgent-count" style="color:#c0392b">—</div><div class="stat-label">Priority</div></div>
+    <div class="stat"><div class="stat-num" id="contacted-count" style="color:#8B7536">—</div><div class="stat-label">Contacted</div></div>
+    <div class="stat"><div class="stat-num" id="booked-count" style="color:#2e7d52">—</div><div class="stat-label">Booked</div></div>
+  </div>
+</div>
+
+<div class="toolbar">
+  <input type="text" class="search-box" id="search-input" placeholder="Search contacts, cities, emails...">
+  
+  <div class="filter-group">
+    <span class="filter-label">Market</span>
+    <button class="filter-btn active" data-filter="market" data-value="all">All</button>
+    <button class="filter-btn" data-filter="market" data-value="USA" style="--active-bg:#c0392b">🇺🇸 USA</button>
+    <button class="filter-btn" data-filter="market" data-value="Europa" style="--active-bg:#2e7d52">🇪🇺 Europa</button>
+    <button class="filter-btn" data-filter="market" data-value="Japón/Asia" style="--active-bg:#1a6fa8">🇯🇵 Asia</button>
+  </div>
+
+  <div class="filter-group">
+    <span class="filter-label">Priority</span>
+    <button class="filter-btn" data-filter="priority" data-value="all">All</button>
+    <button class="filter-btn" data-filter="priority" data-value="urgent">🔴 Urgent</button>
+    <button class="filter-btn" data-filter="priority" data-value="high">🟡 High</button>
+    <button class="filter-btn" data-filter="priority" data-value="mid">🔵 Mid</button>
+  </div>
+
+  <div class="filter-group">
+    <span class="filter-label">Status</span>
+    <button class="filter-btn" data-filter="status" data-value="all">All</button>
+    <button class="filter-btn" data-filter="status" data-value="pending">Pending</button>
+    <button class="filter-btn" data-filter="status" data-value="contacted">Contacted</button>
+    <button class="filter-btn" data-filter="status" data-value="booked">Booked</button>
+  </div>
+
+  <span class="results-count" id="results-count">Showing 64 contacts</span>
+</div>
+
+<div class="main">
+  <div class="contact-list" id="contact-list"></div>
+  <div class="detail-panel" id="detail-panel">
+    <div class="empty-state">
+      <div class="empty-icon">S7N</div>
+      <div class="empty-text">Select a contact to view details</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CONTACTS = [{"id": 1, "name": "CAA — Creative Artists Agency", "type": "Agencia", "market": "USA", "city": "Los Angeles / New York", "email": "music@caa.com", "web": "caa.com", "contact_person": "Ryan Harlacher (heavy rock/metal division)", "priority": "A — Major (Objetivo 18m)", "strategy": "Contacto vía manager. Meta 18 meses post-gira USA.", "notes": "Metallica, Pantera, A7X, Rob Zombie. Nivel arena.", "tags": ["agencia", "major", "thrash", "arena"]}, {"id": 2, "name": "WME — William Morris Endeavor", "type": "Agencia", "market": "USA", "city": "Beverly Hills", "email": "", "web": "music.wmeagency.com", "contact_person": "Kirk Sommer (rock/metal)", "priority": "A — Major (Objetivo 18m)", "strategy": "Contacto vía manager o referido. Meta 18 meses.", "notes": "Iron Maiden, Slipknot, Korn, System of a Down.", "tags": ["agencia", "major", "metal"]}, {"id": 3, "name": "UTA — United Talent Agency", "type": "Agencia", "market": "USA", "city": "Los Angeles / New York", "email": "music@unitedtalent.com", "web": "unitedtalent.com", "contact_person": "Jbeau Lewis, Marissa Smith", "priority": "A — Major (Objetivo 18m)", "strategy": "Contacto vía manager. Meta 18 meses.", "notes": "Tool, Ghost, Trivium, Mastodon, Lamb of God.", "tags": ["agencia", "major", "metal"]}, {"id": 4, "name": "APA — Agency for the Performing Arts", "type": "Agencia", "market": "USA", "city": "Nashville / LA / New York", "email": "", "web": "apa-agency.com", "contact_person": "Steve Martin (Touring Division)", "priority": "B — Mid-tier (Año 1)", "strategy": "Submission page en web. Contacto directo.", "notes": "Judas Priest, Anthrax, Testament, Machine Head.", "tags": ["agencia", "mid-tier", "thrash"]}, {"id": 5, "name": "Distilled Entertainment", "type": "Agencia", "market": "USA", "city": "USA / Canadá", "email": "info@distilledentertainment.com", "web": "distilledentertainment.com", "contact_person": "", "priority": "★ ENTRADA ÓPTIMA — Inmediato", "strategy": "Punto de entrada prioritario. Thrash/groove = zona favorita. Primer contacto.", "notes": "Primeras giras USA para bandas internacionales. Club circuit 300–2,000 cap.", "tags": ["agencia", "entrada", "thrash", "groove", "inmediato"]}, {"id": 6, "name": "Heavy Talent Agency", "type": "Agencia", "market": "USA", "city": "USA", "email": "", "web": "heavytalent.com", "contact_person": "", "priority": "★ ENTRADA ÓPTIMA — Inmediato", "strategy": "Formulario en web. Aval Megadeth + Cannes = muy atractivos.", "notes": "Club–theater 500–5,000 cap. Roster internacional.", "tags": ["agencia", "entrada", "metal", "inmediato"]}, {"id": 7, "name": "K2 Agency", "type": "Agencia", "market": "USA", "city": "Reino Unido + USA", "email": "info@k2agency.com", "web": "k2agency.com", "contact_person": "", "priority": "B — Mid-tier (Año 1)", "strategy": "Conexión UK–USA relevante si S7N también va a Europa.", "notes": "Rock, thrash, groove metal. Zona de confort perfecta.", "tags": ["agencia", "mid-tier", "thrash", "groove", "uk-usa"]}, {"id": 8, "name": "Metal Bookings USA", "type": "Agencia", "market": "USA", "city": "USA", "email": "bookings@metalbookings.com", "web": "metalbookings.com", "contact_person": "", "priority": "B — Mid-tier (Año 1)", "strategy": "100% metal. Club circuit y festivales independientes.", "notes": "Especialistas en nicho metal. Sin distracción de otros géneros.", "tags": ["agencia", "metal", "especialista"]}, {"id": 9, "name": "Red Light Management", "type": "Management", "market": "USA", "city": "USA", "email": "info@redlightmanagement.com", "web": "redlightmanagement.com", "contact_person": "", "priority": "B — Mid-tier (Año 1)", "strategy": "Experiencia con artistas latinos en mainstream USA. Capitalizar ángulo Sin Barreras.", "notes": "Rock, metal y alternativo. Cruces de mercado.", "tags": ["management", "latino", "sinbarreras"]}, {"id": 10, "name": "Danny Wimmer Presents", "type": "Promotor", "market": "USA", "city": "Nacional USA", "email": "press@dannywimmerpresents.com", "web": "dannywimmerpresents.com", "contact_person": "Kristine Ashton-Magnuson (PR): kam@am-media.net", "priority": "★ PRIORITARIO — Festivales", "strategy": "Mayor productor indie festivales USA. Aftershock, Sonic Temple, Rockville, Louder Than Life. Objetivo año 2–3.", "notes": "Inkcarceration = sinergía perfecta con Sin Barreras (festival en prisión).", "tags": ["promotor", "festival", "aftershock", "sinbarreras"]}, {"id": 11, "name": "Live Nation Entertainment USA", "type": "Promotor", "market": "USA", "city": "Nacional USA", "email": "artistrelations@livenation.com", "web": "livenation.com", "contact_person": "", "priority": "A — Major (via agente)", "strategy": "Contacto vía agente establecido. Recintos propios: House of Blues network (8 ciudades).", "notes": "Mayor promotor mundial. House of Blues: Chicago, Dallas, Houston, SD, Boston, LV, NO, Cleveland.", "tags": ["promotor", "major", "house-of-blues"]}, {"id": 12, "name": "AEG Presents USA", "type": "Promotor", "market": "USA", "city": "Nacional USA", "email": "info@aegpresents.com", "web": "aegpresents.com", "contact_person": "", "priority": "A — Major (via agente CAA/WME/UTA)", "strategy": "Vía agente. Opera Goldenvoice (Coachella). Arena y amphitheater.", "notes": "Ozzy Osbourne, Judas Priest, Tool, Rammstein.", "tags": ["promotor", "major", "arena"]}, {"id": 13, "name": "Goldenvoice (AEG)", "type": "Promotor", "market": "USA", "city": "Los Angeles / SoCal", "email": "info@goldenvoice.com", "web": "goldenvoice.com", "contact_person": "", "priority": "B — Año 1 (SoCal)", "strategy": "Esencial para Southern California. Mayor comunidad latina metalera USA.", "notes": "Stagecoach, festivales alternativos. Mercado latino clave.", "tags": ["promotor", "socal", "latino"]}, {"id": 14, "name": "C3 Presents", "type": "Promotor", "market": "USA", "city": "Austin, TX / Nacional", "email": "info@c3presents.com", "web": "c3presents.com", "contact_person": "", "priority": "B — Año 1 (Texas)", "strategy": "Clave para Texas y el sur. Lollapalooza, Austin City Limits. Parte de Live Nation.", "notes": "Rage Against the Machine, Foo Fighters, QOTSA.", "tags": ["promotor", "texas", "austin"]}, {"id": 15, "name": "Margin Walker Presents", "type": "Promotor", "market": "USA", "city": "Dallas / Houston / Texas", "email": "info@marginwalker.com", "web": "marginwalker.com", "contact_person": "", "priority": "★ PRIORITARIO — Texas (Año 1)", "strategy": "Esencial para corredor Texas. Texas tiene 2° mercado latino USA.", "notes": "Granada Theater Dallas. Rock y metal alternativo.", "tags": ["promotor", "texas", "latino", "inmediato"]}, {"id": 16, "name": "Bowery Presents", "type": "Promotor", "market": "USA", "city": "New York / Northeast", "email": "booking@bowerypresents.com", "web": "bowerypresents.com", "contact_person": "", "priority": "B — Año 1 (NE)", "strategy": "Principal promotor indie costa este. Mercury Lounge, Bowery Ballroom, Terminal 5.", "notes": "Referente metal underground noreste.", "tags": ["promotor", "new-york", "northeast"]}, {"id": 17, "name": "Another Planet Entertainment", "type": "Promotor", "market": "USA", "city": "San Francisco / Bay Area", "email": "info@anotherplanetonline.com", "web": "anotherplanetonline.com", "contact_person": "", "priority": "B — Año 1 (NorCal)", "strategy": "Fox Theater Oakland, Greek Theatre Berkeley, Bill Graham Civic.", "notes": "Una de las escenas más activas en metal de EE.UU.", "tags": ["promotor", "san-francisco", "norcal"]}, {"id": 18, "name": "SGE — Synergy Global Entertainment", "type": "Promotor", "market": "USA", "city": "Nacional USA", "email": "info@sgeshows.com", "web": "sgeshows.com", "contact_person": "", "priority": "C — Largo plazo (Knotfest)", "strategy": "Objetivo largo plazo. Conexión directa mundo Knotfest. S7N tocó Knotfest MX 2016 y 2017.", "notes": "Detrás de Knotfest. System of a Down, Slipknot, Marilyn Manson.", "tags": ["promotor", "knotfest", "largo-plazo"]}, {"id": 19, "name": "Mammoth Inc.", "type": "Promotor", "market": "USA", "city": "Denver / Mountain West", "email": "booking@mammothinc.com", "web": "mammothinc.com", "contact_person": "", "priority": "B — Año 1 (Denver)", "strategy": "Ogden Theatre, Gothic Theatre. Colorado, Utah, Arizona, suroeste.", "notes": "Zona con mucha comunidad latina.", "tags": ["promotor", "denver", "mountain-west", "latino"]}, {"id": 20, "name": "Outback Presents", "type": "Promotor", "market": "USA", "city": "Nashville / Sur USA", "email": "info@outbackpresents.com", "web": "outbackpresents.com", "contact_person": "", "priority": "B — Año 1 (Sur)", "strategy": "Nashville, Atlanta, Charlotte. Sureste. Venues 1,000–5,000 cap.", "notes": "Mid-size, base de fans leales.", "tags": ["promotor", "sur", "nashville"]}, {"id": 21, "name": "De La Font Agency", "type": "Agencia", "market": "USA", "city": "USA", "email": "", "web": "delafontagency.com/metal", "contact_person": "", "priority": "B — Complementario", "strategy": "Acceso a eventos corporativos y mercados alternativos.", "notes": "55+ años en el mercado. Groove metal, thrash, hard rock.", "tags": ["agencia", "corporativo", "thrash"]}, {"id": 22, "name": "Cloud 9 Adventures", "type": "Promotor", "market": "USA", "city": "Miami / Nacional", "email": "info@cloud9adventures.com", "web": "cloud9adventures.com", "contact_person": "", "priority": "C — Nicho (70K Tons)", "strategy": "70,000 Tons of Metal. Visibilidad internacional. Sin Barreras como activo.", "notes": "Objetivo de nicho y visibilidad internacional.", "tags": ["promotor", "festival", "nicho", "sinbarreras"]}, {"id": 23, "name": "Napalm Events", "type": "Agencia", "market": "Europa", "city": "Austria / Alemania / Norteamérica", "email": "office@napalm-events.com", "web": "napalm-events.com", "contact_person": "", "priority": "★ PRIORITARIO — Puente USA-Europa", "strategy": "Fusionada con Route One Booking (UK). Trabajan con bandas latinoamericanas. Puente perfecto entre USA y Europa.", "notes": "Rock, thrash, groove, power metal. Todo el rango de S7N.", "tags": ["agencia", "entrada", "thrash", "groove", "latam", "inmediato"]}, {"id": 24, "name": "Primary Talent International", "type": "Agencia", "market": "Europa", "city": "Londres, UK", "email": "info@primarytalent.com", "web": "primarytalent.com", "contact_person": "", "priority": "A — Major Europa", "strategy": "Acceso directo al mercado UK, el más importante para el metal en Europa.", "notes": "Ghost, Trivium, Mastodon, Within Temptation.", "tags": ["agencia", "uk", "major"]}, {"id": 25, "name": "Paradigm Talent Agency (UK)", "type": "Agencia", "market": "Europa", "city": "Londres, UK", "email": "music@paradigmagency.com", "web": "paradigmagency.com", "contact_person": "", "priority": "A — Major (Puente US-EU)", "strategy": "Si S7N tiene agente USA, Paradigm puede ser partner europeo complementario.", "notes": "División europea de gran agencia USA. Alcance US + Europa.", "tags": ["agencia", "uk", "puente-usa-eu"]}, {"id": 26, "name": "Doomstar Bookings", "type": "Agencia", "market": "Europa", "city": "Eindhoven, Países Bajos", "email": "info@doomstarbookings.com", "web": "doomstarbookings.com", "contact_person": "", "priority": "★ ENTRADA ÓPTIMA EUROPA — Inmediato", "strategy": "Champions de artistas con fuerte presencia en vivo. 50+ festivales en 2025. Conexiones NL, BE, DE.", "notes": "Breakthrough más activa de Europa 2025. Epicentro metal europeo.", "tags": ["agencia", "entrada", "festivales", "benelux", "inmediato"]}, {"id": 27, "name": "Killtown Bookings", "type": "Agencia", "market": "Europa", "city": "Copenhague, Dinamarca", "email": "booking@killtownbookings.com", "web": "killtownbookings.com", "contact_person": "", "priority": "★ PRIORITARIO — Ya trabajaron metal MX", "strategy": "IMPORTANTE: Ya han traído metal mexicano a Europa (Cenotaph MX). Conocen logística bandas latam.", "notes": "Thrash/death/black metal. Escandinavia = mercado metalero más rico del mundo.", "tags": ["agencia", "escandinavia", "thrash", "latam", "inmediato"]}, {"id": 28, "name": "Metal Bookings Europa", "type": "Agencia", "market": "Europa", "city": "Alemania / Internacional", "email": "bookings@metalbookings.com", "web": "metalbookings.com", "contact_person": "", "priority": "B — Especialista (Año 1)", "strategy": "100% metal. Relaciones con Live Nation EU, AEG e independientes.", "notes": "Club circuit y festivales independientes europeos.", "tags": ["agencia", "metal", "especialista", "alemania"]}, {"id": 29, "name": "Dragon Productions", "type": "Agencia", "market": "Europa", "city": "Hamburgo, Alemania", "email": "info@dragon-productions.eu", "web": "dragon-productions.eu", "contact_person": "", "priority": "B — Especialista DACH", "strategy": "Expertise heavy metal/hard rock en mercado DACH (Alemania, Austria, Suiza). Hamburgo = hub logístico.", "notes": "DACH es el mercado metalero más grande de Europa.", "tags": ["agencia", "alemania", "dach"]}, {"id": 30, "name": "Route One Booking", "type": "Agencia", "market": "Europa", "city": "Reino Unido / Pan-Europea", "email": "info@routeonebooking.com", "web": "routeonebooking.com", "contact_person": "", "priority": "B — UK + Europa", "strategy": "Fusionada con Napalm Events. Cobertura total UK + Europa en una agencia. Roster hermano perfecto.", "notes": "Voivod, C.O.C., Fu Manchu. UK + Europa + NA.", "tags": ["agencia", "uk", "europa", "thrash"]}, {"id": 31, "name": "Rock Tour Agency", "type": "Agencia", "market": "Europa", "city": "Pan-Europea", "email": "rocktouragency@gmail.com", "web": "rocktouragency.weebly.com", "contact_person": "", "priority": "B — Todo-en-uno (Año 1)", "strategy": "Booking + transporte (nightliner) + backline. Solución completa primera gira europea.", "notes": "Thrash, Heavy, Death, Doom, Hard Rock. Todo el espectro.", "tags": ["agencia", "logistica", "gira"]}, {"id": 32, "name": "Total Metal Concerts & Booking", "type": "Promotor", "market": "Europa", "city": "Europa Central", "email": "booking@metalscraprecords.com", "web": "booking.metalscraprecords.com", "contact_person": "", "priority": "B — Support Act Coordinator", "strategy": "Conseguir slots de support act en giras internacionales de thrash metal en Europa.", "notes": "Crossover/Thrash Metal. Support act coordinator.", "tags": ["promotor", "thrash", "support"]}, {"id": 33, "name": "Live Nation Europe", "type": "Promotor", "market": "Europa", "city": "Pan-Europea", "email": "", "web": "livenation.co.uk", "contact_person": "", "priority": "A — Major (via agente)", "strategy": "Contacto vía agente o manager establecido. Opera en todos los países.", "notes": "Metallica, Iron Maiden, Slipknot, Megadeth, Ozzy Osbourne.", "tags": ["promotor", "major", "arena"]}, {"id": 34, "name": "FKP Scorpio", "type": "Promotor", "market": "Europa", "city": "Hamburgo / Pan-Europea", "email": "info@fkpscorpio.com", "web": "fkpscorpio.com", "contact_person": "", "priority": "A — Mayor Promotor Festivales Europa", "strategy": "Hurricane, Southside, Rock am Ring/Park, Metal Hammer Paradise. Mayor org. festivales Europa.", "notes": "Hub Hamburgo. UK, Finlandia, Suecia, Noruega, Países Bajos.", "tags": ["promotor", "festival", "festival-run", "alemania"]}, {"id": 35, "name": "Eventim Live", "type": "Promotor", "market": "Europa", "city": "Alemania / Pan-Europea", "email": "info@eventim-live.com", "web": "eventim-live.com", "contact_person": "", "priority": "B — Rock am Ring/Park", "strategy": "Rock am Ring y Rock im Park en Alemania. Arenas y teatros continente.", "notes": "CTS Eventim. Arena Milano 2026.", "tags": ["promotor", "alemania", "festival", "rock-am-ring"]}, {"id": 36, "name": "SJM Concerts", "type": "Promotor", "market": "Europa", "city": "Reino Unido", "email": "info@sjmconcerts.com", "web": "sjmconcerts.com", "contact_person": "", "priority": "B — UK Prioritario", "strategy": "Mayor promotor indie UK. Iron Maiden, Slipknot, Black Sabbath, Judas Priest.", "notes": "Arenas y theatres británicos.", "tags": ["promotor", "uk", "arena"]}, {"id": 37, "name": "Semmel Concerts", "type": "Promotor", "market": "Europa", "city": "Alemania / Europa Central", "email": "info@semmel.de", "web": "semmel.de", "contact_person": "", "priority": "B — DACH (Año 1)", "strategy": "Clubs y arenas Alemania, Austria, Suiza y Europa del Este. Con Live Nation e independiente.", "notes": "Mercado DACH clave para el metal.", "tags": ["promotor", "alemania", "dach"]}, {"id": 38, "name": "Vivo Concerti", "type": "Promotor", "market": "Europa", "city": "Italia", "email": "info@vivoconcerti.com", "web": "vivoconcerti.com", "contact_person": "", "priority": "B — Italia", "strategy": "Promotor líder Italia. Metallica, Iron Maiden, Slipknot. Comunidad metalera más apasionada de Europa.", "notes": "Mercado italiano muy leal.", "tags": ["promotor", "italia"]}, {"id": 39, "name": "Friends & Partners", "type": "Promotor", "market": "Europa", "city": "Italia (Milán/Roma)", "email": "info@friendsandpartners.it", "web": "friendsandpartners.it", "contact_person": "", "priority": "B — Italia (Año 1)", "strategy": "Ha producido Megadeth, Pantera, Anthrax en Italia. Corredor Milán–Bolonia–Roma más rentable.", "notes": "Conexión directa via historial Megadeth.", "tags": ["promotor", "italia", "megadeth-connection"]}, {"id": 40, "name": "Doctor Music / Primavera Sound (ES)", "type": "Promotor", "market": "Europa", "city": "Barcelona / Madrid, España", "email": "info@doctormusic.com", "web": "doctormusic.com", "contact_person": "", "priority": "★ PRIORITARIO — España (Debut EU)", "strategy": "España = debut europeo ideal. Mismo idioma, afinidad cultural. Doctor Music produce tours nivel arena.", "notes": "Mercado latino natural para S7N en Europa.", "tags": ["promotor", "españa", "latino", "debut-europa", "inmediato"]}, {"id": 41, "name": "Mojo Concerts", "type": "Promotor", "market": "Europa", "city": "Países Bajos / Amsterdam", "email": "info@mojo.nl", "web": "mojo.nl", "contact_person": "", "priority": "B — Benelux Hub", "strategy": "Hub logístico perfecto. Acceso a UK, Alemania, Bélgica, Francia en 200km radio.", "notes": "AFAS Live, Ziggo Dome, Pinkpop.", "tags": ["promotor", "benelux", "hub"]}, {"id": 42, "name": "Kimera Events", "type": "Promotor", "market": "Europa", "city": "Copenhague / Oslo / Estocolmo", "email": "info@kimera.dk", "web": "", "contact_person": "", "priority": "B — Escandinavia", "strategy": "Mayor densidad festivales metal per cápita. Copenhell, Sweden Rock, Tons of Rock, Tuska.", "notes": "Fans nórdicos = más intensos del mundo.", "tags": ["promotor", "escandinavia"]}, {"id": 43, "name": "Metaltix / Hellfire Concerts", "type": "Promotor", "market": "Europa", "city": "Europa Central / Balcanes", "email": "info@metaltix.com", "web": "metaltix.com", "contact_person": "", "priority": "B — Europa del Este (Año 1)", "strategy": "Polonia, Rep. Checa, Hungría, Serbia, Rumanía. Costos 40-60% menores. Comunidades enormes.", "notes": "Alta relación calidad/costo para bandas emergentes.", "tags": ["promotor", "europa-este", "bajo-costo"]}, {"id": 44, "name": "Creativeman Productions", "type": "Promotor", "market": "Japón/Asia", "city": "Tokio, Japón", "email": "info@creativeman.co.jp", "web": "creativeman.co.jp", "contact_person": "Naoki Shimizu (presidente IPAJ) · Tel: 03-3499-6669", "priority": "★ PRIORITARIO — Primer Contacto Japón", "strategy": "Promotor Summer Sonic. Puerta de entrada más importante al mercado japonés para artistas extranjeros.", "notes": "Rock, metal, alternativo. Primer contacto recomendado en Japón.", "tags": ["promotor", "japon", "ipaj", "summer-sonic", "inmediato"]}, {"id": 45, "name": "Smash Corporation", "type": "Promotor", "market": "Japón/Asia", "city": "Tokio + Osaka + Londres", "email": "info@smash-jpn.com", "web": "smash-jpn.com", "contact_person": "Johnnie Fingers (conexión UK/Europa)", "priority": "★ PRIORITARIO — Fuji Rock", "strategy": "Fuji Rock Festival (100,000+). Conexión Londres–Tokio = puente ideal entre gira europea y debut japonés.", "notes": "Si S7N tiene agente europeo, acceso a Smash más fácil.", "tags": ["promotor", "japon", "ipaj", "fuji-rock", "uk-bridge"]}, {"id": 46, "name": "Udo Artists Inc.", "type": "Promotor", "market": "Japón/Asia", "city": "Tokio, Japón", "email": "info@udo.co.jp", "web": "udo.co.jp", "contact_person": "", "priority": "★ CRÍTICO — Conexión Megadeth", "strategy": "CRÍTICO. Agencia que históricamente trae Megadeth a Japón. Argumento: 'Somos el opening act de la gira de despedida de Megadeth.' Esa frase abre la puerta.", "notes": "Iron Maiden, Judas Priest, Ozzy Osbourne, Anthrax, Megadeth. LA referencia del metal clásico en Japón.", "tags": ["promotor", "japon", "ipaj", "megadeth-connection", "metal", "inmediato"]}, {"id": 47, "name": "Kyodo Tokyo Inc.", "type": "Promotor", "market": "Japón/Asia", "city": "Tokio, Japón", "email": "info@kyodotokyo.com", "web": "kyodotokyo.com", "contact_person": "", "priority": "B — Red Nacional Japón", "strategy": "Red nacional de contactos con venues en ciudades más allá de Tokio y Osaka. Gira 8–10 ciudades.", "notes": "Parte del grupo Kyodo News. Rock internacional. Cobertura nacional completa.", "tags": ["promotor", "japon", "ipaj", "nacional"]}, {"id": 48, "name": "Disk Garage", "type": "Promotor", "market": "Japón/Asia", "city": "Tokio, Japón", "email": "info@diskgarage.com", "web": "diskgarage.com", "contact_person": "", "priority": "B — Jefe Asociación Promotores", "strategy": "Jefe de la asociación de promotores de Japón. Puede facilitar presentaciones con todos los miembros IPAJ simultáneamente.", "notes": "Rock, metal, alternativo. Todo el espectro.", "tags": ["promotor", "japon", "ipaj"]}, {"id": 49, "name": "Hayashi International (H.I.P.)", "type": "Promotor", "market": "Japón/Asia", "city": "Tokio, Japón", "email": "info@hip-land.co.jp", "web": "hip-land.co.jp", "contact_person": "", "priority": "★ ESTRATÉGICO — Artistas Internacionales", "strategy": "La agencia japonesa con más foco en artistas internacionales. Experiencia con actos latinos. Punto de entrada más estratégico para banda mexicana.", "notes": "Artistas internacionales de rock y alternativo. Experiencia con actos latinos.", "tags": ["promotor", "japon", "ipaj", "latam", "internacional"]}, {"id": 50, "name": "Zepp Hallsystem (Sony)", "type": "Venue/Red", "market": "Japón/Asia", "city": "Nacional Japón (5 ciudades)", "email": "info@zepp.co.jp", "web": "zepp.co.jp", "contact_person": "", "priority": "★ ESTRATÉGICO — Red Sony (5 ciudades)", "strategy": "Red propiedad Sony. Una negociación = 5 fechas (Tokio, Osaka, Nagoya, Fukuoka, Sapporo). Conexión directa vía Sony Publishing. Equivalente japonés del House of Blues.", "notes": "2,000–2,700 cap. por venue. Alto retorno económico.", "tags": ["venue", "japon", "sony", "inmediato"]}, {"id": 51, "name": "Live Nation Japan", "type": "Promotor", "market": "Japón/Asia", "city": "Tokio, Japón", "email": "japan@livenation.com", "web": "livenationjapan.com", "contact_person": "", "priority": "B — Major Japan", "strategy": "Coordinación con gira norteamericana o europea de S7N. Red global Live Nation.", "notes": "Metallica, Slipknot, Ozzy Osbourne en Japón.", "tags": ["promotor", "japon", "major"]}, {"id": 52, "name": "Avex Entertainment", "type": "Promotor", "market": "Japón/Asia", "city": "Tokio, Japón", "email": "info@avex.co.jp", "web": "avex.co.jp", "contact_person": "", "priority": "B — Sello + Promotor Japón", "strategy": "Sello y promotor. Divisiones J-pop, K-pop, rock/alternativo internacional. Miembro IPAJ.", "notes": "Conexiones extensas con artistas internacionales y festivales.", "tags": ["promotor", "japon", "ipaj", "sello"]}, {"id": 53, "name": "Billboard Japan (Hanshin)", "type": "Venue", "market": "Japón/Asia", "city": "Tokio / Osaka / Yokohama / Nagoya", "email": "booking@billboard-live.com", "web": "billboard-live.com", "contact_person": "", "priority": "★ DEBUT ÍNTIMO — Año 1", "strategy": "Venues 300–600 cap. Perfectos para debut japonés. Audiencia alta calidad y disposición.", "notes": "Ambiente íntimo. Alto ticket. Fans de calidad.", "tags": ["venue", "japon", "debut", "intimo"]}, {"id": 54, "name": "M&I Company", "type": "Promotor", "market": "Japón/Asia", "city": "Tokio, Japón", "email": "info@manda-i.com", "web": "manda-i.com", "contact_person": "", "priority": "B — Miembro Fundador IPAJ", "strategy": "Especialista en artistas internacionales. Trato personalizado. Miembro fundador IPAJ.", "notes": "Rock y alternativo. Mediano y gran tamaño.", "tags": ["promotor", "japon", "ipaj"]}, {"id": 55, "name": "Promax Inc.", "type": "Promotor", "market": "Japón/Asia", "city": "Tokio / Osaka", "email": "info@promax.co.jp", "web": "promax.co.jp", "contact_person": "", "priority": "★ RANGO IDEAL Primer Tour Japón", "strategy": "Mid-level specialist. Circuito clubs y theatres 500–3,000 cap. Rango exacto para primer tour S7N.", "notes": "Artistas internacionales de nivel medio estableciéndose en Japón.", "tags": ["promotor", "japon", "mid-level", "primer-tour", "inmediato"]}, {"id": 56, "name": "Unite Asia", "type": "Hub/Directorio", "market": "Japón/Asia", "city": "Pan-Asiática", "email": "", "web": "uniteasia.org", "contact_person": "Directorio: uniteasia.org/promoter-database", "priority": "★ INFRAESTRUCTURA SEA", "strategy": "Plataforma de noticias y directorio de promotores más importante de toda Asia. Publicar anuncio de gira activa TODOS los promotores del continente simultáneamente.", "notes": "Japón, Corea, Filipinas, Indonesia, Tailandia, Singapur, Malasia, Vietnam, India, HK, Taiwan.", "tags": ["hub", "sea", "infraestructura", "inmediato"]}, {"id": 57, "name": "Live Nation Asia", "type": "Promotor", "market": "Japón/Asia", "city": "Singapur / Bangkok / Manila / Yakarta", "email": "asia@livenation.com", "web": "livenation.asia", "contact_person": "", "priority": "B — Major SEA", "strategy": "División asiática Live Nation. Opera SG, TH, PH, ID y otros mercados.", "notes": "Metallica, Slipknot, A7X, MCR al Sudeste Asiático.", "tags": ["promotor", "sea", "major"]}, {"id": 58, "name": "MBC Plus / Live Nation Korea", "type": "Promotor", "market": "Japón/Asia", "city": "Seúl, Corea del Sur", "email": "info@livenation.co.kr", "web": "livenation.co.kr", "contact_person": "", "priority": "B — Corea del Sur", "strategy": "Principales promotores internacionales en Corea. Escena metalera emergente y activa.", "notes": "Guns N' Roses, Oasis, MCR, metal. Alta capacidad adquisitiva.", "tags": ["promotor", "corea", "korea"]}, {"id": 59, "name": "Bullet in the Head Promotions", "type": "Promotor", "market": "Japón/Asia", "city": "Singapur / SEA", "email": "bithpromotions@gmail.com", "web": "", "contact_person": "FB: /BulletInTheHeadPromoSG", "priority": "B — Debut Singapur (SEA Hub)", "strategy": "Especializado en metal/rock en Singapur y SEA. Debut en región. Singapur = hub logístico.", "notes": "Bandas internacionales de metal que debutan en la región.", "tags": ["promotor", "singapur", "sea", "metal"]}, {"id": 60, "name": "LAMC Productions", "type": "Promotor", "market": "Japón/Asia", "city": "Singapur / SEA", "email": "info@lamcproductions.com", "web": "lamcproductions.com", "contact_person": "", "priority": "★ HUB LOGÍSTICO SEA", "strategy": "Mayor promotor rock/metal de Singapur. Coordina giras regionales. Hub para Malasia, Indonesia y Tailandia.", "notes": "Metallica, Slayer, Megadeth, Iron Maiden en Singapur. Historial Big Four thrash.", "tags": ["promotor", "singapur", "sea", "hub", "megadeth-connection", "inmediato"]}, {"id": 61, "name": "BEC-Tero Entertainment", "type": "Promotor", "market": "Japón/Asia", "city": "Bangkok, Tailandia", "email": "contact@bectero.com", "web": "bectero.com", "contact_person": "", "priority": "B — Bangkok/Tailandia", "strategy": "Empresa de entretenimiento más grande de Tailandia. Mercado metalero en explosión.", "notes": "A7X Oct 2026, MCR Nov 2026 confirman demanda de metal en Bangkok.", "tags": ["promotor", "tailandia", "bangkok"]}, {"id": 62, "name": "Ismaya Live", "type": "Promotor", "market": "Japón/Asia", "city": "Yakarta, Indonesia", "email": "info@ismayalive.com", "web": "ismayalive.com", "contact_person": "", "priority": "B — Indonesia (280M hab)", "strategy": "Mayor promotor de Indonesia. Escena metalera enorme per cápita. Java y Bali.", "notes": "Metallica, Guns N' Roses, Slipknot en Yakarta.", "tags": ["promotor", "indonesia", "yakarta"]}, {"id": 63, "name": "MMI Live Manila", "type": "Promotor", "market": "Japón/Asia", "city": "Manila, Filipinas", "email": "info@mmilive.ph", "web": "mmilive.ph", "contact_person": "", "priority": "B — Filipinas", "strategy": "Mayor promotor de Filipinas. Escena rock y metal extraordinariamente activa. Fans más apasionados de Asia.", "notes": "Lamb of God, Slipknot en Mall of Asia Arena.", "tags": ["promotor", "filipinas", "manila"]}, {"id": 64, "name": "Rock on the Moon", "type": "Promotor", "market": "Japón/Asia", "city": "Bangkok, Tailandia", "email": "rockonthemoonbkk@gmail.com", "web": "", "contact_person": "FB: /RockOnTheMoonBKK", "priority": "B — Metal Underground Bangkok", "strategy": "Underground metal y hardcore en Bangkok. Han traído a Incantation Jun 2026. Circuito underground activo.", "notes": "Metal especializado. Bangkok underground.", "tags": ["promotor", "tailandia", "underground", "metal"]}];
+
+// State
+let state = {
+  filter_market: 'all',
+  filter_priority: 'all',
+  filter_status: 'all',
+  search: '',
+  selected: null,
+  statuses: {},  // id -> status string
+  user_notes: {},  // id -> string
+};
+
+// Load from localStorage
+try {
+  const saved = localStorage.getItem('s7n_crm');
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    state.statuses = parsed.statuses || {};
+    state.user_notes = parsed.user_notes || {};
+  }
+} catch(e) {}
+
+function save() {
+  try {
+    localStorage.setItem('s7n_crm', JSON.stringify({
+      statuses: state.statuses,
+      user_notes: state.user_notes
+    }));
+  } catch(e) {}
+  updateStats();
+}
+
+function priorityLevel(p) {
+  if (p.includes('ENTRADA ÓPTIMA') || p.includes('CRÍTICO') || p.includes('Inmediato') || p.includes('★')) return 'urgent';
+  if (p.includes('Major') || p.includes('PRIORITARIO') || p.includes('ESTRATÉGICO')) return 'high';
+  if (p.includes('B —') || p.includes('Mid')) return 'mid';
+  return 'low';
+}
+
+function priorityClass(p) {
+  const l = priorityLevel(p);
+  if (l === 'urgent') return 'p-urgent';
+  if (l === 'high') return 'p-high';
+  if (l === 'mid') return 'p-mid';
+  return 'p-low';
+}
+
+function marketDot(m) {
+  if (m === 'USA') return 'dot-usa';
+  if (m === 'Europa') return 'dot-eu';
+  return 'dot-asia';
+}
+
+function filterContacts() {
+  return CONTACTS.filter(c => {
+    if (state.filter_market !== 'all' && c.market !== state.filter_market) return false;
+    if (state.filter_priority !== 'all' && priorityLevel(c.priority) !== state.filter_priority) return false;
+    if (state.filter_status !== 'all') {
+      const st = state.statuses[c.id] || 'pending';
+      if (st !== state.filter_status) return false;
+    }
+    if (state.search) {
+      const q = state.search.toLowerCase();
+      if (!c.name.toLowerCase().includes(q) &&
+          !c.city.toLowerCase().includes(q) &&
+          !c.email.toLowerCase().includes(q) &&
+          !c.type.toLowerCase().includes(q) &&
+          !(c.notes || '').toLowerCase().includes(q) &&
+          !(c.strategy || '').toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function renderList() {
+  const filtered = filterContacts();
+  const list = document.getElementById('contact-list');
+  document.getElementById('results-count').textContent = `Showing ${filtered.length} contact${filtered.length!==1?'s':''}`;
+  
+  if (filtered.length === 0) {
+    list.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text-muted);font-size:13px;letter-spacing:2px;text-transform:uppercase">No contacts found</div>';
+    return;
+  }
+
+  // Group by market
+  const groups = {};
+  filtered.forEach(c => {
+    if (!groups[c.market]) groups[c.market] = [];
+    groups[c.market].push(c);
+  });
+
+  const order = ['USA', 'Europa', 'Japón/Asia'];
+  const marketClass = {'USA':'usa','Europa':'eu','Japón/Asia':'asia'};
+  const marketEmoji = {'USA':'🇺🇸 USA','Europa':'🇪🇺 Europa','Japón/Asia':'🇯🇵 Japan & Asia'};
+
+  let html = '';
+  order.forEach(m => {
+    if (!groups[m]) return;
+    html += `<div class="list-section-header ${marketClass[m]}">${marketEmoji[m]} · ${groups[m].length} contacts</div>`;
+    groups[m].forEach(c => {
+      const status = state.statuses[c.id] || 'pending';
+      const isDone = status === 'booked' || status === 'pass';
+      const pl = priorityLevel(c.priority);
+      const pillLabel = pl === 'urgent' ? '★ URGENT' : pl === 'high' ? 'HIGH' : pl === 'mid' ? 'MID' : 'LOW';
+      html += `
+        <div class="contact-item${state.selected===c.id?' selected':''}${isDone?' done':''}" onclick="selectContact(${c.id})">
+          <div class="contact-name">${c.name}</div>
+          <div class="contact-meta">
+            <div class="market-dot ${marketDot(c.market)}"></div>
+            <span class="contact-type">${c.type}</span>
+            <span class="contact-city">${c.city.split('/')[0].trim()}</span>
+            <span class="priority-pill ${priorityClass(c.priority)}">${pillLabel}</span>
+            ${status !== 'pending' ? `<span style="font-size:9px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;background:var(--surface2);padding:2px 6px;">${status.toUpperCase()}</span>` : ''}
+          </div>
+        </div>
+      `;
+    });
+  });
+
+  list.innerHTML = html;
+}
+
+function selectContact(id) {
+  state.selected = id;
+  renderList();
+  renderDetail();
+}
+
+function renderDetail() {
+  const panel = document.getElementById('detail-panel');
+  if (!state.selected) {
+    panel.innerHTML = '<div class="empty-state"><div class="empty-icon">S7N</div><div class="empty-text">Select a contact to view details</div></div>';
+    return;
+  }
+  const c = CONTACTS.find(x => x.id === state.selected);
+  if (!c) return;
+
+  const status = state.statuses[c.id] || 'pending';
+  const userNote = state.user_notes[c.id] || '';
+  const statuses = ['pending','contacted','replied','meeting','booked','pass'];
+  const statusLabels = {'pending':'📋 Pending','contacted':'📧 Contacted','replied':'💬 Replied','meeting':'🤝 Meeting','booked':'✅ Booked','pass':'❌ Pass'};
+
+  const emailHref = c.email ? `mailto:${c.email}?subject=Booking%20Inquiry%20%E2%80%94%20S7N%202026` : '';
+
+  panel.innerHTML = `
+    <div class="detail-header">
+      <div class="detail-type-row">
+        <span class="detail-type-badge">${c.market} · ${c.type}</span>
+      </div>
+      <div class="detail-name">${c.name}</div>
+      <div class="detail-city">${c.city}</div>
+    </div>
+
+    <div class="priority-block">
+      <div class="priority-label">Priority Level</div>
+      <div class="priority-value">${c.priority}</div>
+    </div>
+
+    <div class="actions">
+      ${c.email ? `<a href="${emailHref}" class="btn btn-email">✉ Send Email</a>` : '<span class="btn btn-web" style="opacity:0.4;cursor:default">No Email Listed</span>'}
+      ${c.web ? `<a href="https://${c.web}" target="_blank" class="btn btn-web">🌐 Website</a>` : ''}
+    </div>
+
+    <div class="detail-grid">
+      ${c.email ? `<div class="detail-card"><div class="detail-card-label">Email</div><div class="detail-card-value"><a href="${emailHref}">${c.email}</a></div></div>` : ''}
+      ${c.web ? `<div class="detail-card"><div class="detail-card-label">Website</div><div class="detail-card-value"><a href="https://${c.web}" target="_blank">${c.web}</a></div></div>` : ''}
+      ${c.contact_person ? `<div class="detail-card" style="grid-column:1/-1"><div class="detail-card-label">Key Contact</div><div class="detail-card-value">${c.contact_person}</div></div>` : ''}
+    </div>
+
+    <div class="strategy-block">
+      <div class="strategy-label">🎯 Booking Strategy</div>
+      <div class="strategy-text">${c.strategy}</div>
+    </div>
+
+    <div class="notes-block">
+      <div class="notes-label">Notes & Background</div>
+      <div class="notes-text">${c.notes}</div>
+    </div>
+
+    <div class="tags-row">
+      ${(c.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}
+    </div>
+
+    <div class="status-section">
+      <div class="status-label">Status Tracker</div>
+      <div class="status-options">
+        ${statuses.map(s=>`
+          <div class="status-opt s-${s}${status===s?' active':''}" onclick="setStatus(${c.id},'${s}')">${statusLabels[s]}</div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div style="margin-top:20px">
+      <div class="status-label">Personal Notes</div>
+      <textarea class="notes-textarea" id="user-note-ta" placeholder="Add your notes, follow-up dates, responses...">${userNote}</textarea>
+      <button class="save-note-btn" onclick="saveNote(${c.id})">SAVE NOTE</button>
+    </div>
+  `;
+}
+
+function setStatus(id, status) {
+  state.statuses[id] = status;
+  save();
+  renderList();
+  renderDetail();
+}
+
+function saveNote(id) {
+  const ta = document.getElementById('user-note-ta');
+  if (ta) {
+    state.user_notes[id] = ta.value;
+    save();
+    const btn = document.querySelector('.save-note-btn');
+    if (btn) { btn.textContent = 'SAVED ✓'; setTimeout(()=>{if(btn)btn.textContent='SAVE NOTE';}, 1500); }
+  }
+}
+
+function updateStats() {
+  const urgent = CONTACTS.filter(c => priorityLevel(c.priority) === 'urgent').length;
+  const contacted = Object.values(state.statuses).filter(s => ['contacted','replied','meeting'].includes(s)).length;
+  const booked = Object.values(state.statuses).filter(s => s === 'booked').length;
+  document.getElementById('urgent-count').textContent = urgent;
+  document.getElementById('contacted-count').textContent = contacted;
+  document.getElementById('booked-count').textContent = booked;
+}
+
+// Filter buttons
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const filterType = btn.dataset.filter;
+    const value = btn.dataset.value;
+    
+    // Remove active from same group
+    document.querySelectorAll(`[data-filter="${filterType}"]`).forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    if (filterType === 'market') state.filter_market = value;
+    if (filterType === 'priority') state.filter_priority = value;
+    if (filterType === 'status') state.filter_status = value;
+    
+    renderList();
+  });
+});
+
+// Search
+document.getElementById('search-input').addEventListener('input', e => {
+  state.search = e.target.value;
+  renderList();
+});
+
+// Init
+updateStats();
+renderList();
+</script>
+
+</body>
+</html>
