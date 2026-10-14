@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://s7n.info/sitemap.xml
