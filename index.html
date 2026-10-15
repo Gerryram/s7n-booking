@@ -13,11 +13,15 @@
 <meta property="og:title" content="S7N — International Booking 2026/27">
 <meta property="og:description" content="Book S7N — Mexico City groove/thrash metal. Megadeth farewell-tour support, Sony Music Publishing, Cannes-awarded documentary. Booking for festivals, venues and private events 2026/27.">
 <meta property="og:url" content="https://s7n.info/">
-<meta property="og:image" content="https://s7n.info/img/hero.jpg">
+<meta property="og:image" content="https://s7n.info/s7n-og.jpg">
+<meta property="og:video" content="https://s7n.info/s7n-reel.mp4">
+<meta property="og:video:type" content="video/mp4">
+<meta property="og:video:width" content="1080">
+<meta property="og:video:height" content="1350">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="S7N — International Booking 2026/27">
 <meta name="twitter:description" content="Book S7N — Mexico City groove/thrash metal. Megadeth farewell-tour support, Sony Music Publishing, Cannes-awarded documentary. Booking for festivals, venues and private events 2026/27.">
-<meta name="twitter:image" content="https://s7n.info/img/hero.jpg">
+<meta name="twitter:image" content="https://s7n.info/s7n-og.jpg">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"MusicGroup","name":"S7N","genre":["Groove Metal","Thrash Metal"],"foundingDate":"2009","foundingLocation":"Mexico City","url":"https://s7n.info/","sameAs":["https://linktr.ee/s7n.music"]}</script>
 </head>
 <body>
@@ -321,12 +325,24 @@
   .foot-fine{font-size:.74rem; color:var(--muted); font-family:'Share Tech Mono';}
 
   ::selection{background:var(--accent); color:#fff;}
+
+  /* ---------- REEL ---------- */
+  .reel{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.1fr); gap:48px; align-items:center;}
+  @media (max-width:820px){ .reel{grid-template-columns:1fr; gap:28px;} }
+  .reel-frame{position:relative; background:#000; border:1px solid var(--line-strong); max-width:440px; width:100%; justify-self:center; box-shadow:var(--shadow);}
+  .reel-frame video{display:block; width:100%; height:auto; aspect-ratio:4/5; object-fit:cover; background:#000;}
+  .reel-sound{position:absolute; right:12px; bottom:12px; font-family:'Share Tech Mono'; font-size:.66rem; letter-spacing:.08em; text-transform:uppercase; background:rgba(10,9,7,.8); color:var(--ink); border:1px solid var(--line-strong); padding:8px 12px; cursor:pointer;}
+  .reel-sound:hover{border-color:var(--accent);}
+  .reel-list{list-style:none; margin:24px 0 30px; padding:0; display:flex; flex-direction:column; gap:10px;}
+  .reel-list li{font-size:.95rem; color:var(--ink-dim); padding-left:18px; position:relative;}
+  .reel-list li::before{content:"—"; position:absolute; left:0; color:var(--brass);}
 </style>
 
 <nav class="nav">
   <div class="nav-inner">
     <div class="nav-mark">S7<span>N</span> <span style="color:var(--muted); font-size:.6rem; font-family:'Share Tech Mono'; letter-spacing:.1em; margin-left:4px;">BOOKING</span></div>
     <ul class="nav-links">
+      <li><a href="#reel">Reel</a></li>
       <li><a href="#why">Why S7N</a></li>
       <li><a href="#credentials">Credentials</a></li>
       <li><a href="#pricing">Pricing</a></li>
@@ -347,6 +363,7 @@
     <p class="hero-lede">Direct support on <b>Megadeth's farewell tour</b>. The only active metal act worldwide signed to <b>Sony Music Publishing</b>. A Cannes-award documentary behind them. <b>S7N is booking-ready for arenas, festivals, clubs and everything between.</b></p>
     <div class="hero-actions">
       <a class="btn btn-primary" href="#contact">Booking Inquiry →</a>
+      <a class="btn btn-ghost" href="#reel">&#9654; Watch the Reel</a>
       <a class="btn btn-ghost" href="#pricing">See Pricing &amp; Packages</a>
     </div>
     <div class="chiprow">
@@ -357,6 +374,33 @@
     </div>
   </div>
 </header>
+
+<!-- ============ REEL ============ -->
+<section class="sec" id="reel">
+  <div class="wrap reel">
+    <div class="reel-frame">
+      <video id="reelVideo" src="s7n-reel.mp4" poster="s7n-reel-poster.jpg" autoplay muted loop playsinline preload="metadata" aria-label="S7N 15-second booking reel"></video>
+      <button class="reel-sound" type="button" id="reelSound">&#128263; Sound on</button>
+    </div>
+    <div>
+      <div class="sec-num">00 — Booking Reel</div>
+      <h2 class="sec-title">S7N in <em>15 seconds</em></h2>
+      <p class="sec-desc">The short version for promoters, buyers and festival programmers — everything you need to put S7N on a bill.</p>
+      <ul class="reel-list">
+        <li>Direct support, Megadeth farewell tour — Mexico arenas, May 2026</li>
+        <li>Knotfest Mexico main stage, 2016 &amp; 2017</li>
+        <li>Cannes-awarded documentary <em>Sin Barreras</em></li>
+        <li>Sony Music Publishing · new album <em>VII</em></li>
+      </ul>
+      <div class="hero-actions" style="margin-bottom:0;">
+        <a class="btn btn-primary" href="#contact">Booking Inquiry →</a>
+        <a class="btn btn-ghost" href="s7n-reel.mp4" download>Download Reel</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
 
 <!-- ============ WHY BOOK ============ -->
 <section class="sec" id="why">
@@ -703,5 +747,16 @@
 </script>
 
 
+<script>
+(function(){
+  var v=document.getElementById('reelVideo'), b=document.getElementById('reelSound');
+  if(!v||!b) return;
+  b.addEventListener('click',function(){
+    v.muted=!v.muted;
+    if(!v.muted){ try{ v.currentTime=0; v.play(); }catch(e){} }
+    b.innerHTML = v.muted ? '&#128263; Sound on' : '&#128266; Sound off';
+  });
+})();
+</script>
 </body>
 </html>
